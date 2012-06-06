@@ -1,7 +1,7 @@
-function Furnace(){
+var Furnace = function(){
   //do some kind of init
   this.models = {};
-}
+};
 // ..........................................................
 // Add's models to the furnace global
 // 

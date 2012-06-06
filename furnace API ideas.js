@@ -2,13 +2,26 @@ var furnace = require('furnace');
 // ..........................................................
 // Baisc
 // 
+
+furnace.addModel('address', {});
+
 furnace.addModel('contact',{
-  whitelsit: ['first', 'last' ],
+  whitelsit: ['first', 'last', 'address' ],
   validations: {
     first:  furnace.validate('string')
     last: furnace.string({requried: true})
   }
 });
+
+furnace.addModel('contact', {
+  first: true,
+  last: {
+    type: 'address',
+    readonly: true,
+    validate: function(callback){}
+  }
+})
+
 // ..........................................................
 // complex
 // 
@@ -36,3 +49,6 @@ app.post('/contact', function(request, resp){
   });
   
 });
+
+//order of operations
+// whitelist => validate => transform => defaultValue
