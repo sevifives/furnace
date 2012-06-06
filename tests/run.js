@@ -3,7 +3,8 @@ var spawn = require('child_process').spawn,
     exitCode = 0;
 
 var tests = [
-    'test-whitelist.js'
+    'test-whitelist.js',
+    'add-test.js'
 ];
 
 var next = function () {

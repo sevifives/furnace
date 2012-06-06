@@ -16,6 +16,8 @@ Furnace.prototype.addModel = function(name, config){
 // blasting helper functions
 // 
 var whitelist = function(object, allowedKeys){
+  if(!allowedKeys) return object; //pass through if no whitelist defined
+  
   var newObj = {};
   allowedKeys.forEach(function(key){
     newObj[key] = object[key];
