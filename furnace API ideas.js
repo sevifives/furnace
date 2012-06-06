@@ -31,7 +31,7 @@ app.post('/contact', furnace.middleware('contact'), function(request, response){
 
 //use without connect
 app.post('/contact', function(request, resp){
-  furnace.pipe('conact', request.body, function(err, data){
+  furnace.blast('conact', request.body, function(err, data){
     //do your database work here
   });
   
