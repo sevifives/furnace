@@ -10,6 +10,7 @@ Furnace.prototype.addModel = function(name, config){
   
   var finalConfig = {
     whitelist: [],
+    totalValidations: 0,
     origConfig: config
   };
   for(var key in config){
@@ -18,12 +19,22 @@ Furnace.prototype.addModel = function(name, config){
       if(config[key]) finalConfig.whitelist.push(key);
       //add the validation
       if(config[key].validation){
+        finalConfig.totalValidations +=1;
         finalConfig.validations[key] = config[key].validation;
       }
       
     }
   }
   this.models[name] = finalConfig; 
+};
+// ..........................................................
+// Define a property
+// 
+Furnace.prototype.prop = function(options){
+  if(options === undefined) options = {}
+  if(!options.whitelist) options.whitelist = true;
+  
+  return options;
 };
 
 
@@ -41,8 +52,19 @@ var whitelist = function(object, allowedKeys){
   return newObj;
 };
 
-var validate = function(object, validations){
+var validationDone = function(){
   
+};
+
+
+var validateAll = function(object, validations,totalValidations,finalCB){
+  for(var key in object){
+    if(object.hasOwnProperty(key)){
+      if(validations[key]){
+        validations[key](object[key], object, validationDone(totalValidations, finalCB));
+      }
+    }
+  }
 };
 
 
