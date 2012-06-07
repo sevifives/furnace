@@ -1,6 +1,6 @@
-var furnace = require('./main');
+var property = require('./property');
 
-var requiredField = furnace.prop({ 
+var requiredField = property({ 
   required: true
 });
 

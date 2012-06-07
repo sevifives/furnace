@@ -1,9 +1,9 @@
-var properties = require('./properties');
+var property = require('./property'),
+    properties = require('./properties');
 
 var Furnace = function(){
   //do some kind of init
   this.models = {};
-  this.properties = properties;
 };
 
 
@@ -33,15 +33,10 @@ Furnace.prototype.addModel = function(name, config){
   this.models[name] = finalConfig; 
 };
 // ..........................................................
-// Define a property
+// Define a property and property helpers
 // 
-Furnace.prototype.prop = function(options){
-  if(options === undefined) options = {}
-  if(!options.whitelist) options.whitelist = true;
-  
-  return options;
-};
-
+Furnace.prototype.prop = property;
+Furnace.prototype.properties = properties;
 
 // ..........................................................
 // blasting helper functions
