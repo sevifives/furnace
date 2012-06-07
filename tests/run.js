@@ -5,7 +5,8 @@ var spawn = require('child_process').spawn,
 var tests = [
     'test-whitelist.js',
     'add-test.js',
-    'test-validations.js'
+    'test-validations.js',
+    'test-sanitize.js'
 ];
 
 var next = function () {

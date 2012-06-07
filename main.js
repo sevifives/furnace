@@ -14,6 +14,8 @@ Furnace.prototype.addModel = function(name, config){
   
   var finalConfig = {
     whitelist: [],
+    requiredKeys: [],
+    sanitizeFunctions: {},
     totalValidations: 0,
     validations: {},
     origConfig: config
@@ -22,10 +24,18 @@ Furnace.prototype.addModel = function(name, config){
     if(config.hasOwnProperty(key)){
       //add to the whitelist
       if(config[key]) finalConfig.whitelist.push(key);
+      //add to the required keys set
+      if(config[key].isRequired) requiredKeys.push(key);
+      
       //add the validation
       if(config[key].validate){
         finalConfig.totalValidations +=1;
         finalConfig.validations[key] = config[key].validate;
+      }
+      
+      //add sanitize function
+      if(config[key].sanitize){
+        finalConfig.sanitizeFunctions[key] = config[key].sanitize;
       }
       
     }
@@ -51,7 +61,38 @@ var whitelist = function(object, allowedKeys){
   });
   return newObj;
 };
+// ..........................................................
+// isRequired
+// 
+var isRequired = function(object, requiredKeys){
+  if(!requiredKeys || requiredKeys && requiredKeys.length === 0) return null;
+   
+  var ret = [];
+  
+  requiredKeys.forEach(function(key){
+    if(object[key] === undefined) ret.push(key+" is required.");
+  });
+  if(ret.length > 0) return ret.join(", ");
+  else return null;
+};
 
+// ..........................................................
+// sanitize is a sync call to quote, escape your data
+// 
+var sanitize = function(object, sanitizeFunctions){
+  for(var key in object){
+    if(object.hasOwnProperty(key)){
+      if(sanitizeFunctions[key]){
+        object[key] = sanitizeFunctions[key](object[key], object);
+      }
+    }
+  }
+  return object;
+};
+// ..........................................................
+// runALl is used to execute N annonomous functions for
+// validations and for default values
+// 
 var runAllDone; //to be defined further down
 var runAll = function(object, functions, totalFunctions,finalCB){
   //short circut
@@ -88,13 +129,24 @@ runAllDone = function(totalErrors, totalValidations, currentDoneCount){
 // runs the passed object through the filters
 // 
 Furnace.prototype.blast = function(model, data, cb){
-  var config = this.models[model];
+  var config = this.models[model], missingKeys;
   if(!config) cb("Couldn't find config for model "+model,null);
+  //first whitelist
   data = whitelist(data, config.whitelist);
-  runAll(data, config.validations, config.totalValidations, function(errors){
-    if(errors) cb(errors);
-    else cb(null, data);
-  });
+  //check for required keys
+  missingKeys = isRequired(data,config.requiredKeys);
+  if(missingKeys) cb(missingKeys, null);  //end now
+  else{
+    //sanitize
+    data = sanitize(data, config.sanitizeFunctions);
+    
+    runAll(data, config.validations, config.totalValidations, function(errors){
+      if(errors) cb(errors, data);
+      else cb(null, data);
+    });
+  }
+  
+
 };
 
 

@@ -11,7 +11,7 @@ furnace.addModel('dork', {
   first: furnace.prop()
 });
 
-furnace.addModel('noWhitelist', {});
+furnace.addModel('multipleValidations', {});
 
 furnace.blast('dork', {name: 'hello', first: 'hey'}, function(err, data){
   

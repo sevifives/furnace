@@ -9,6 +9,7 @@ furnace.addModel('dork', {
 furnace.addModel('noWhitelist', {});
 
 furnace.blast('dork', {name: 'hello', asdf:'scary', first: 'hey'}, function(err, data){
+
   assert.deepEqual(data, {name: 'hello', first: 'hey'}, "should have removed asdf");
 });
 

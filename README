@@ -35,4 +35,4 @@ app.post('/contact', function(request, resp){
 });
 
 //order of operations
-// whitelist => isRequired => validate => sanitize => defaultValue
+// whitelist => isRequired => sanitize (sync) => validate (async)
