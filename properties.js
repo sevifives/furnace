@@ -4,4 +4,6 @@ var requiredField = property({
   required: true
 });
 
-module.exports = requiredField;
+module.exports = {
+  requiredField: requiredField
+};
