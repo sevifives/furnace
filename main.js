@@ -1,5 +1,4 @@
-var property = require('./property'),
-    properties = require('./properties');
+var properties = require('./properties');
 
 var Furnace = function(){
   //do some kind of init
@@ -35,7 +34,7 @@ Furnace.prototype.addModel = function(name, config){
 // ..........................................................
 // Define a property and property helpers
 // 
-Furnace.prototype.prop = property;
+Furnace.prototype.prop = properties.prop;
 Furnace.prototype.properties = properties;
 
 // ..........................................................

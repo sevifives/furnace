@@ -1,6 +1,10 @@
-var property = require('./property');
-
 module.exports = {
+  
+  prop: function(options) {
+    if(options === undefined) options = {}
+    if(!options.whitelist) options.whitelist = true;
+    return options;
+  },
 
   requiredField: function(options) {
     var prop = { required: true };
