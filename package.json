@@ -1,0 +1,21 @@
+{
+  "author": "",
+  "name": "furnace",
+  "description": "Burn, baby! Burn.",
+  "version": "0.0.1",
+  "homepage": "https://github.com/Eloqua/furnace",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Eloqua/furnace.git"
+  },
+  "main": "main.js",
+  "scripts": {
+    "test": "node ./tests/run.js"
+  },
+  "engines": {
+    "node": "~0.6.11"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {}
+}
