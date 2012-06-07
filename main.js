@@ -1,7 +1,12 @@
+var properties = require('./properties');
+
 var Furnace = function(){
   //do some kind of init
   this.models = {};
+  this.properties = properties;
 };
+
+
 // ..........................................................
 // Add's models to the furnace global
 // 
