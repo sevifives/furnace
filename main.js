@@ -15,6 +15,7 @@ Furnace.prototype.addModel = function(name, config){
   var finalConfig = {
     whitelist: [],
     totalValidations: 0,
+    validations: {},
     origConfig: config
   };
   for(var key in config){
@@ -22,9 +23,9 @@ Furnace.prototype.addModel = function(name, config){
       //add to the whitelist
       if(config[key]) finalConfig.whitelist.push(key);
       //add the validation
-      if(config[key].validation){
+      if(config[key].validate){
         finalConfig.totalValidations +=1;
-        finalConfig.validations[key] = config[key].validation;
+        finalConfig.validations[key] = config[key].validate;
       }
       
     }
@@ -51,21 +52,32 @@ var whitelist = function(object, allowedKeys){
   return newObj;
 };
 
-var validationDone = function(){
-  
-};
-
-
+var validationDone; //to be defined further down
 var validateAll = function(object, validations,totalValidations,finalCB){
+  //short circut
+  if(totalValidations === 0) finalCB(null);
+  
+  var currentDoneCount = 0,
+      totalErrors = [];
+  
   for(var key in object){
     if(object.hasOwnProperty(key)){
       if(validations[key]){
-        validations[key](object[key], object, validationDone(totalValidations, finalCB));
+        validations[key](object[key], object, validationDone);
       }
     }
   }
 };
-
+//called when all the validation callbacks have fired
+validationDone = function(errors){
+  if(errors) totalErrors.push(errors);
+  
+  if(currentDoneCount === totalValidations) {
+    if(errors.length === 0) finalCB(null);
+    else finalCB(errors);
+  }
+  else currentDoneCount+=1;
+};
 
 
 // ..........................................................
@@ -75,10 +87,10 @@ Furnace.prototype.blast = function(model, data, cb){
   var config = this.models[model];
   if(!config) cb("Couldn't find config for model "+model,null);
   data = whitelist(data, config.whitelist);
-  
-  
-  
-  cb(null, data);
+  validateAll(data, config.validations, config.totalValidations, function(errors){
+    if(errors) cb(errors);
+    else cb(null, data);
+  });
 };
 
 
