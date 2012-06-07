@@ -52,31 +52,35 @@ var whitelist = function(object, allowedKeys){
   return newObj;
 };
 
-var validationDone; //to be defined further down
-var validateAll = function(object, validations,totalValidations,finalCB){
+var runAllDone; //to be defined further down
+var runAll = function(object, functions, totalFunctions,finalCB){
   //short circut
-  if(totalValidations === 0) finalCB(null);
+  if(totalFunctions === 0) finalCB(null);
   
   var currentDoneCount = 0,
       totalErrors = [];
   
   for(var key in object){
     if(object.hasOwnProperty(key)){
-      if(validations[key]){
-        validations[key](object[key], object, validationDone);
+      if(functions[key]){
+        functions[key](object[key], object, 
+                        runAllDone(totalErrors, totalFunctions, currentDoneCount) );
       }
     }
   }
 };
 //called when all the validation callbacks have fired
-validationDone = function(errors){
-  if(errors) totalErrors.push(errors);
-  
-  if(currentDoneCount === totalValidations) {
-    if(errors.length === 0) finalCB(null);
-    else finalCB(errors);
-  }
-  else currentDoneCount+=1;
+runAllDone = function(totalErrors, totalValidations, currentDoneCount){
+  return function(errors){
+    if(errors) totalErrors.push(errors);
+
+    if(currentDoneCount === totalValidations) {
+      if(errors.length === 0) finalCB(null);
+      else finalCB(errors);
+    }
+    else currentDoneCount+=1;
+  };
+
 };
 
 
@@ -87,7 +91,7 @@ Furnace.prototype.blast = function(model, data, cb){
   var config = this.models[model];
   if(!config) cb("Couldn't find config for model "+model,null);
   data = whitelist(data, config.whitelist);
-  validateAll(data, config.validations, config.totalValidations, function(errors){
+  runAll(data, config.validations, config.totalValidations, function(errors){
     if(errors) cb(errors);
     else cb(null, data);
   });
