@@ -16,6 +16,11 @@ Furnace.prototype.addModel = function(name, config){
     if(config.hasOwnProperty(key)){
       //add to the whitelist
       if(config[key]) finalConfig.whitelist.push(key);
+      //add the validation
+      if(config[key].validation){
+        finalConfig.validations[key] = config[key].validation;
+      }
+      
     }
   }
   this.models[name] = finalConfig; 
@@ -36,6 +41,10 @@ var whitelist = function(object, allowedKeys){
   return newObj;
 };
 
+var validate = function(object, validations){
+  
+};
+
 
 
 // ..........................................................
@@ -45,6 +54,8 @@ Furnace.prototype.blast = function(model, data, cb){
   var config = this.models[model];
   if(!config) cb("Couldn't find config for model "+model,null);
   data = whitelist(data, config.whitelist);
+  
+  
   
   cb(null, data);
 };
@@ -63,4 +74,5 @@ Furnace.prototype.middleware = function(model){
     });
   };
 };
-module.exports = new Furnace();
+var f = new Furnace();
+module.exports = f;
