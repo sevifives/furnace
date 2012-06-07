@@ -1,4 +1,6 @@
 var furnace = require('furnace');
+//checkpoint
+
 // ..........................................................
 // Baisc
 // 
@@ -15,10 +17,23 @@ furnace.addModel('contact',{
 
 furnace.addModel('contact', {
   first: true,
+  
   last: {
     type: 'address',
-    readonly: true,
-    validate: function(callback){}
+    onWhitelist: true, //true by default    
+    //will continue and call transform if
+    //done is called without an error
+    validate: function(value, object, done){
+      
+    },
+    
+    //will continue and call transform if
+    //done is called without an error
+    transform: function(value, object, done){
+      
+    },
+    //will only be called if the value is undefined
+    defaultValue: //function(){} || {} || "" || []
   }
 })
 

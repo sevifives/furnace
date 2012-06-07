@@ -8,7 +8,17 @@ var Furnace = function(){
 Furnace.prototype.addModel = function(name, config){
   if(this.models[name] !== undefined) throw "Attempting to add model "+name+" that already exists!";
   
-  this.models[name] = config; 
+  var finalConfig = {
+    whitelist: [],
+    origConfig: config
+  };
+  for(var key in config){
+    if(config.hasOwnProperty(key)){
+      //add to the whitelist
+      if(config[key]) finalConfig.whitelist.push(key);
+    }
+  }
+  this.models[name] = finalConfig; 
 };
 
 
@@ -16,7 +26,8 @@ Furnace.prototype.addModel = function(name, config){
 // blasting helper functions
 // 
 var whitelist = function(object, allowedKeys){
-  if(!allowedKeys) return object; //pass through if no whitelist defined
+  //pass through if no whitelist defined
+  if(!allowedKeys || allowedKeys && allowedKeys.length === 0) return object; 
   
   var newObj = {};
   allowedKeys.forEach(function(key){

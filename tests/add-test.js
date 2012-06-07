@@ -2,7 +2,8 @@ var furnace = require('../main.js'),
     assert = require('assert');
 
 furnace.addModel('dork', {
-  whitelist: ['name', 'first']
+  name: {},
+  first: {}
 });
 
 try {
