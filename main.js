@@ -1,3 +1,5 @@
+var properties = require('./properties'),
+    Property   = properties.property;
 // ..........................................................
 // blasting helper functions
 //
@@ -15,7 +17,7 @@ var whitelist = function(source, allowedKeys){
 // isRequired
 //
 var isRequired = function(object, requiredKeys){
-  if(!requiredKeys || requiredKeys && requiredKeys.length === 0) return null;
+  if(!requiredKeys) return null;
   var ret = [];  
   requiredKeys.forEach(function(key){
     if(object[key] === undefined) ret.push(key+" is required.");
@@ -69,17 +71,17 @@ var runAll = function(object, functions, totalFunctions, finalCB){
 var buildModelConfiguration = function(model) {
   var sanitizeFunctions = {};
   var allowedKeys = [], requiredKeys = [], totalValidations = 0, validations = {};
-  Object.keys(model).map(function(key) {
+  Object.keys(model).map(function(property) {
     //add whitelist
-    allowedKeys.push(key);
+    allowedKeys.push(property);
     //add required fields
-    if (model[key].isRequired) requiredKeys.push(key);
+    if (model[property].isRequired) requiredKeys.push(property);
     //add sanitize function
-    if (model[key].sanitize) sanitizeFunctions[key] = model[key].sanitize;
+    if (model[property].sanitize) sanitizeFunctions[property] = model[property].sanitize;
     //add validations
-    if(model[key].validate) {
+    if(model[property].validate) {
       totalValidations +=1;
-      validations[key] = model[key].validate;
+      validations[property] = model[property].validate;
     }
   });
   return { 
@@ -89,19 +91,6 @@ var buildModelConfiguration = function(model) {
     totalValidations: totalValidations,
     validations: validations
   };
-};
-
-var Property = function(options) {
-  var self = this;
-  if (options === undefined) options = {};
-  if (options.sanitize) self.sanitize = options.sanitize;
-  if (options.validate) self.validate = options.validate;
-  if (options.type) {
-    Object.keys(options.type).forEach(function(property) {
-      self[property] = options.type[property];
-    });
-  }
-  return self;
 };
 
 var Model = function(properties) {
@@ -152,3 +141,4 @@ var furnace = new Furnace();
 module.exports = exports = furnace;
 exports.Model = Model;
 exports.Property = Property;
+exports.Properties = properties;
