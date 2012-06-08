@@ -1,17 +1,16 @@
-var furnace = require('../main.js'),
-    assert = require('assert');
+/*globals escape */
+var furnace  = require('../main.js'),
+    assert   = require('assert');
 
-furnace.addModel('dork', {
-  name: furnace.prop({
+var model = new furnace.Model({
+  name: new furnace.Property({
     sanitize: function(value, object){
       return escape(value);
     }
   }),
-  first: furnace.prop()
+  first: new furnace.Property()
 });
 
-furnace.blast('dork', {name: '"hello', first: 'hey'}, function(err, data){
-  
-  assert(data.name, '\"hello', "should have escaped that string");
-
+furnace.blast(model, { name: 'hello?', first: 'hey' }, function(err, data) {
+  assert.deepEqual(data.name, 'hello%3F', "should have escaped that string");
 });

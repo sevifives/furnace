@@ -1,74 +1,22 @@
-var properties = require('./properties');
-
-var Furnace = function(){
-  //do some kind of init
-  this.models = {};
-};
-
-
-// ..........................................................
-// Add's models to the furnace global
-// 
-Furnace.prototype.addModel = function(name, config){
-  if(this.models[name] !== undefined) throw "Attempting to add model "+name+" that already exists!";
-  
-  var finalConfig = {
-    whitelist: [],
-    requiredKeys: [],
-    sanitizeFunctions: {},
-    totalValidations: 0,
-    validations: {},
-    origConfig: config
-  };
-  for(var key in config){
-    if(config.hasOwnProperty(key)){
-      //add to the whitelist
-      if(config[key]) finalConfig.whitelist.push(key);
-      //add to the required keys set
-      if(config[key].isRequired) requiredKeys.push(key);
-      
-      //add the validation
-      if(config[key].validate){
-        finalConfig.totalValidations +=1;
-        finalConfig.validations[key] = config[key].validate;
-      }
-      
-      //add sanitize function
-      if(config[key].sanitize){
-        finalConfig.sanitizeFunctions[key] = config[key].sanitize;
-      }
-      
-    }
-  }
-  this.models[name] = finalConfig; 
-};
-// ..........................................................
-// Define a property and property helpers
-// 
-Furnace.prototype.prop = properties.prop;
-Furnace.prototype.properties = properties;
-
 // ..........................................................
 // blasting helper functions
-// 
-var whitelist = function(object, allowedKeys){
+//
+var whitelist = function(source, allowedKeys){
   //pass through if no whitelist defined
-  if(!allowedKeys || allowedKeys && allowedKeys.length === 0) return object; 
-  
-  var newObj = {};
-  allowedKeys.forEach(function(key){
-    newObj[key] = object[key];
+  if(!allowedKeys || allowedKeys && allowedKeys.length === 0) return source;   
+  var dest = {};
+  allowedKeys.forEach(function(key) {
+    dest[key] = source[key];
   });
-  return newObj;
+  return dest;
 };
+
 // ..........................................................
 // isRequired
-// 
+//
 var isRequired = function(object, requiredKeys){
   if(!requiredKeys || requiredKeys && requiredKeys.length === 0) return null;
-   
-  var ret = [];
-  
+  var ret = [];  
   requiredKeys.forEach(function(key){
     if(object[key] === undefined) ret.push(key+" is required.");
   });
@@ -89,79 +37,114 @@ var sanitize = function(object, sanitizeFunctions){
   }
   return object;
 };
-// ..........................................................
-// runALl is used to execute N annonomous functions for
-// validations and for default values
-// 
-var runAllDone; //to be defined further down
-var runAll = function(object, functions, totalFunctions,finalCB){
+
+var runAll = function(object, functions, totalFunctions, finalCB){
+
+  var runAllDone = function(totalErrors, totalValidations, currentDoneCount) {
+    return function(errors) {
+      if(errors) totalErrors.push(errors);
+      if(currentDoneCount === totalValidations) {
+        if(errors.length === 0) finalCB(null);
+        else finalCB(errors);
+      }
+      else currentDoneCount+=1;
+    };
+  };
+
   //short circut
   if(totalFunctions === 0) finalCB(null);
-  
+
   var currentDoneCount = 0,
       totalErrors = [];
-  
+
   for(var key in object){
     if(object.hasOwnProperty(key)){
       if(functions[key]){
-        functions[key](object[key], object, 
-                        runAllDone(totalErrors, totalFunctions, currentDoneCount) );
+        functions[key](object[key], object, runAllDone(totalErrors, totalFunctions, currentDoneCount) );
       }
     }
   }
 };
-//called when all the validation callbacks have fired
-runAllDone = function(totalErrors, totalValidations, currentDoneCount){
-  return function(errors){
-    if(errors) totalErrors.push(errors);
 
-    if(currentDoneCount === totalValidations) {
-      if(errors.length === 0) finalCB(null);
-      else finalCB(errors);
+var buildModelConfiguration = function(model) {
+  var sanitizeFunctions = {};
+  var allowedKeys = [], requiredKeys = [], totalValidations = 0, validations = {};
+  Object.keys(model).map(function(key) {
+    //add whitelist
+    allowedKeys.push(key);
+    //add required fields
+    if (model[key].isRequired) requiredKeys.push(key);
+    //add sanitize function
+    if (model[key].sanitize) sanitizeFunctions[key] = model[key].sanitize;
+    //add validations
+    if(model[key].validate) {
+      totalValidations +=1;
+      validations[key] = model[key].validate;
     }
-    else currentDoneCount+=1;
+  });
+  return { 
+    allowedKeys: allowedKeys,
+    requiredKeys: requiredKeys,
+    sanitizeFunctions: sanitizeFunctions,
+    totalValidations: totalValidations,
+    validations: validations
   };
-
 };
 
+var Property = function(options) {
+  var self = this;
+  if (options === undefined) options = {};
+  if (options.sanitize) self.sanitize = options.sanitize;
+  if (options.validate) self.validate = options.validate;
+  return self;
+};
+
+var Model = function(properties) {
+  var self = this;
+  if (properties === undefined) properties = {};
+  Object.keys(properties).forEach(function(property) {
+    if (properties[property] instanceof Property) self[property] = properties[property];
+  });
+  return self;
+};
+
+var Furnace = function() {};
+
+Furnace.prototype.Model = Model;
+Furnace.prototype.Property = Property;
 
 // ..........................................................
 // runs the passed object through the filters
-// 
-Furnace.prototype.blast = function(model, data, cb){
-  var config = this.models[model], missingKeys;
-  if(!config) cb("Couldn't find config for model "+model,null);
+//
+Furnace.prototype.blast = function(model, source, callback) {
+  var self = this;
+  var config = buildModelConfiguration(model);
   //first whitelist
-  data = whitelist(data, config.whitelist);
+  var data = whitelist(source, config.allowedKeys);
   //check for required keys
-  missingKeys = isRequired(data,config.requiredKeys);
-  if(missingKeys) cb(missingKeys, null);  //end now
-  else{
-    //sanitize
-    data = sanitize(data, config.sanitizeFunctions);
-    
-    runAll(data, config.validations, config.totalValidations, function(errors){
-      if(errors) cb(errors, data);
-      else cb(null, data);
-    });
-  }
-  
-
+  var missingKeys = isRequired(data, config.requiredKeys);
+  if(missingKeys) return callback(missingKeys, null);  //end now
+  //sanitize
+  data = sanitize(data, config.sanitizeFunctions);
+  runAll(data, config.validations, config.totalValidations, function(errors) {
+    if(errors) cb(errors, data);
+    else callback(null, data);
+  });
 };
-
 
 // ..........................................................
 // connect middleware
 //
-Furnace.prototype.middleware = function(model){
+Furnace.prototype.middleware = function(model) {
   var self = this;
-  return function(request, response, next){
-    self.blast(model, request.body, function(err, data){
+  return function(req, res, next) {
+    this.blast(model, req.body, function(err, data) {
       if (err) return next(err);
-      request.body = data;
+      req.body = data;
       next();
     });
   };
 };
-var f = new Furnace();
-module.exports = f;
+
+var furnace = new Furnace();
+module.exports = furnace;

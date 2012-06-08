@@ -1,13 +1,9 @@
 var furnace = require('../main.js'),
     assert = require('assert');
 
-furnace.addModel('dork', {
-  name: furnace.prop(),
-  first: furnace.prop()
+var model = new furnace.Model({
+  name: new furnace.Property(),
+  first: new furnace.Property()
 });
 
-try {
-  furnace.addModel('dork', {});
-} catch(e){
-  assert.ok(e, "should have thrown exception while adding a model with the same name");
-}
+assert.deepEqual(model, { name: {}, first: {} }, "should have created a model with two properties");
