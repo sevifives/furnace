@@ -96,6 +96,11 @@ var Property = function(options) {
   if (options === undefined) options = {};
   if (options.sanitize) self.sanitize = options.sanitize;
   if (options.validate) self.validate = options.validate;
+  if (options.type) {
+    Object.keys(options.type).forEach(function(property) {
+      self[property] = options.type[property];
+    });
+  }
   return self;
 };
 
@@ -109,9 +114,6 @@ var Model = function(properties) {
 };
 
 var Furnace = function() {};
-
-Furnace.prototype.Model = Model;
-Furnace.prototype.Property = Property;
 
 // ..........................................................
 // runs the passed object through the filters
@@ -147,4 +149,6 @@ Furnace.prototype.middleware = function(model) {
 };
 
 var furnace = new Furnace();
-module.exports = furnace;
+module.exports = exports = furnace;
+exports.Model = Model;
+exports.Property = Property;
