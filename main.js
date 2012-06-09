@@ -10,7 +10,13 @@ var Furnace = function(){
 // Add's models to the furnace global
 // 
 Furnace.prototype.addModel = function(name, config){
-  if(this.models[name] !== undefined) throw "Attempting to add model "+name+" that already exists!";
+  if(typeof name === 'object'){ 
+    config = name;
+    name = null;
+  }
+  else if(this.models[name] !== undefined){
+    throw "Attempting to add model "+name+" that already exists!";
+  }
   
   var finalConfig = {
     whitelist: [],
@@ -18,7 +24,13 @@ Furnace.prototype.addModel = function(name, config){
     sanitizeFunctions: {},
     totalValidations: 0,
     validations: {},
-    origConfig: config
+    origConfig: config,
+    middleware: function(){
+      return Furnace.prototype.middleware(this);
+    },
+    blast: function(data, cb){
+      Furnace.prototype.blast(this,data,cb);
+    }
   };
   for(var key in config){
     if(config.hasOwnProperty(key)){
@@ -40,7 +52,8 @@ Furnace.prototype.addModel = function(name, config){
       
     }
   }
-  this.models[name] = finalConfig; 
+  if(name) this.models[name] = finalConfig;
+  return finalConfig;
 };
 // ..........................................................
 // Define a property and property helpers
@@ -129,7 +142,11 @@ runAllDone = function(totalErrors, totalValidations, currentDoneCount){
 // runs the passed object through the filters
 // 
 Furnace.prototype.blast = function(model, data, cb){
-  var config = this.models[model], missingKeys;
+  var config, missingKeys;
+  
+  if(typeof model === 'object') config = model;
+  else config = this.models[model];
+  
   if(!config) cb("Couldn't find config for model "+model,null);
   //first whitelist
   data = whitelist(data, config.whitelist);
